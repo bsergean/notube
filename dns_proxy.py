@@ -9,7 +9,7 @@
 """
 from __future__ import print_function
 
-import binascii,copy,socket,struct,sys
+import binascii,copy,socket,struct,sys,datetime
 
 from dnslib import DNSRecord,RR,QTYPE,RCODE,parse_time
 from dnslib.server import DNSServer,DNSHandler,BaseResolver,DNSLogger
@@ -60,9 +60,28 @@ class InterceptResolver(BaseResolver):
         matched = False
         reply = request.reply()
         qname = request.q.qname
+
+        # notube starts here
+
         for drop in self.drop:
             if qname.matchGlob(f'*{drop}*'):
-                return reply
+
+                # >>> import datetime
+                # >>> print(datetime.datetime.now())
+                # 2020-11-03 05:33:11.896109
+                # >>> td = datetime.timedelta(hours=8)
+                # >>> datetime.datetime.now() - td
+                # datetime.datetime(2020, 11, 2, 21, 33, 50, 525194)
+
+                # 8 hours between california time and utc time
+                # server runs on utc time
+                td = datetime.timedelta(hours=8)
+                localHour = (datetime.datetime.now() - td).hour
+                if 7 < localHour < 16:
+                    return reply
+
+        # notube stops here
+
         qtype = QTYPE[request.q.qtype]
         # Try to resolve locally unless on skip list
         if not any([qname.matchGlob(s) for s in self.skip]):
