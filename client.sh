@@ -1,1 +1,6 @@
-python -m dnslib.client -s jeanserge.com:5353 www.youtube.com
+#!/bin/sh
+
+HOST=${1:=jeanserge.com}
+PORT=${2:=53}
+
+python -m dnslib.client -s $HOST:$PORT www.youtube.com
